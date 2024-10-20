@@ -13,12 +13,25 @@ export default function SpriteScratch() {
     const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
     const [draggingSprite, setDraggingSprite] = useState(null);
     const containerRef = useRef(null);
+
     const executeAction = ({ spriteId, type, payload }) => {
         const actionMap = {
-            [MOVE_STEPS]: () => dispatch(move({ spriteId, ...payload })),
-            [TURN_DEGREES]: () => dispatch(rotate({ spriteId, ...payload })),
-            [GO_TO]: () => dispatch(goTo({ spriteId, ...payload })),
-            [REPEAT]: () => playForSprite(spriteId),
+            [MOVE_STEPS]: () => {
+                console.log(`Moving sprite ${spriteId} by ${payload.steps} steps.`);
+                dispatch(move({ spriteId, ...payload }));
+            },
+            [TURN_DEGREES]: () => {
+                console.log(`Rotating sprite ${spriteId} by ${payload.degree} degrees.`);
+                dispatch(rotate({ spriteId, ...payload }));
+            },
+            [GO_TO]: () => {
+                console.log(`Moving sprite ${spriteId} to position x: ${payload.x}, y: ${payload.y}.`);
+                dispatch(goTo({ spriteId, ...payload }));
+            },
+            [REPEAT]: () => {
+                console.log(`Repeating actions for sprite ${spriteId}.`);
+                playForSprite(spriteId);
+            },
         };
 
         const action = actionMap[type];
@@ -26,49 +39,72 @@ export default function SpriteScratch() {
     };
 
     const playForSprite = (spriteId) => {
-        const sprite = sprites.find(sprite => sprite.id === spriteId);
-        if (!sprite || sprite.actions.length === 0) return;
-
+        const sprite = sprites.find((sprite) => sprite.id === spriteId);
+        console.log(`Sprite found:`, sprite);
+    
+        if (!sprite) {
+            console.log(`Sprite with ID ${spriteId} not found.`);
+            return;
+        }
+    
+        console.log(`Actions for sprite ${spriteId}:`, sprite.actions);
+    
         let actionIndex = 0;
         clearTimeout(timeoutRefs.current[sprite.id]);
-
+    
         const executeNextAction = () => {
-            if (actionIndex >= sprite.actions.length) return;
-
-            const action = sprite.actions[actionIndex];
-            executeAction({ spriteId: sprite.id, type: action.type, payload: action.payload });
-
-            if (sprites.length > 1 && spritesState.showCollisionAnimation && !spritesState.collisionHandled) {
-                sprites.forEach((sprite2) => {
-                    if (sprite2.name !== sprite.name) {
-                        dispatch(checkCollisionAndSwap({ spriteId1: sprite.id, spriteId2: sprite2.id }));
-                    }
-                });
+            if (actionIndex < 5) {
+              
+                const moveAction = {
+                    type: 'MoveSteps', 
+                    payload: { steps: 10 } 
+                };
+                console.log(`Executing action Move for sprite ${spriteId} with payload`, moveAction.payload);
+                executeAction({ spriteId: sprite.id, type: moveAction.type, payload: moveAction.payload });
+                actionIndex++;
+                timeoutRefs.current[sprite.id] = setTimeout(executeNextAction, 400); 
+            } else if (actionIndex < 10) {
+                
+                const moveDownAction = {
+                    type: 'MoveSteps', 
+                    payload: { steps: -10 } 
+                };
+                console.log(`Executing action Move Down for sprite ${spriteId} with payload`, moveDownAction.payload);
+                executeAction({ spriteId: sprite.id, type: moveDownAction.type, payload: moveDownAction.payload });
+                actionIndex++;
+                timeoutRefs.current[sprite.id] = setTimeout(executeNextAction, 400); 
+            } else {
+                console.log(`Finished executing all move actions for sprite ${spriteId}.`);
             }
-
-            actionIndex++;
-            timeoutRefs.current[sprite.id] = setTimeout(executeNextAction, 400);
         };
-
+    
         executeNextAction();
     };
+    
+
     const play = () => {
+        clearTimeouts(); 
         sprites.forEach((sprite) => {
+            
             playForSprite(sprite.id);
         });
     };
+
+    
     const clearTimeouts = () => {
         Object.keys(timeoutRefs.current).forEach(spriteId => {
             clearTimeout(timeoutRefs.current[spriteId]);
         });
-    }
+    };
+
     useEffect(() => {
         if (spritesState.collisionHandled) {
-            clearTimeouts()
+            clearTimeouts();
             play();
             dispatch(resetCollisionHandled());
         }
-    }, [spritesState.collisionHandled])
+    }, [spritesState.collisionHandled]);
+
     useEffect(() => {
         if (!containerRef.current) return;
 
@@ -83,13 +119,14 @@ export default function SpriteScratch() {
         resizeObserver.observe(containerRef.current);
         return () => {
             resizeObserver.disconnect();
-            clearTimeouts()
+            clearTimeouts();
         };
     }, []);
 
     const handleDragStart = useCallback((spriteId) => {
         setDraggingSprite(spriteId);
     }, []);
+
     const handleDragOver = useCallback((e) => {
         e.preventDefault();
     }, []);
@@ -105,20 +142,23 @@ export default function SpriteScratch() {
         const newX = e.clientX - containerRect.left - centerX;
         const newY = centerY - (e.clientY - containerRect.top);
 
+        console.log(`Dropping sprite ${draggingSprite} to x: ${newX}, y: ${newY}.`);
         dispatch(goTo({
             spriteId: draggingSprite,
-            x: newX, y: newY
+            x: newX,
+            y: newY
         }));
 
         setDraggingSprite(null);
     }, [dispatch, draggingSprite, containerRef]);
+
     return (
         <div className="stage-area overflow-hidden relative bg-white border-2 border-gray-200" style={{ flex: 0.8 }} ref={containerRef} onDragOver={handleDragOver}
             onDrop={handleDrop}>
             {
-                sprites.map((sprite) => <Sprite key={sprite.id} sprite={sprite} containerSize={containerSize}
-                    onDragStart={handleDragStart}
-                />)
+                sprites.map((sprite) => (
+                    <Sprite key={sprite.id} sprite={sprite} containerSize={containerSize} onDragStart={handleDragStart} />
+                ))
             }
             <div className="absolute bottom-4 right-3">
                 <button
@@ -127,7 +167,7 @@ export default function SpriteScratch() {
                 >
                     <PlayCircle className="mr-2" size={20} />
                     Play
-                </button>
+                </button>   
             </div>
         </div>
     );

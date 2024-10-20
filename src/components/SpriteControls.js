@@ -17,7 +17,7 @@ const SpriteControls = () => {
         <div className="flex gap-2">
           <div className="flex items-center justify-between py-2 px-4 bg-white rounded-lg shadow-md">
             <label htmlFor="enableCollision" className="text-gray-700 font-medium mr-4">
-              Swap Actions On Collision
+              Click here for  Collision
             </label>
             <div className="relative inline-block w-12 h-6 transition duration-200 ease-in-out">
               <input

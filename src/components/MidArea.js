@@ -4,6 +4,7 @@ import { addActionToSprite, deleteAction } from '../redux/spritesSlice.js';
 import { Trash } from 'lucide-react';
 import { SpriteImage } from './Sprite.js';
 import ActionInput from './ActionInput.js';
+import { move, rotate, goTo, repeatAction } from '../redux/spritesSlice'; // Import action creators
 
 const MidArea = () => {
   const dispatch = useDispatch();
@@ -20,6 +21,28 @@ const MidArea = () => {
 
     if (selectedSpriteId) {
       dispatch(addActionToSprite({ spriteId: selectedSpriteId, actionType, actionText, payload }));
+
+      // Perform the action immediately
+      performAction(actionType, payload);
+    }
+  };
+
+  const performAction = (actionType, payload) => {
+    switch (actionType) {
+      case 'MoveSteps':
+        dispatch(move({ steps: payload.steps, spriteId: selectedSpriteId }));
+        break;
+      case 'TurnDegrees':
+        dispatch(rotate({ degree: payload.degree, spriteId: selectedSpriteId }));
+        break;
+      case 'GoTo':
+        dispatch(goTo({ x: payload.x, y: payload.y, spriteId: selectedSpriteId }));
+        break;
+      case 'Repeat':
+        dispatch(repeatAction({ spriteId: selectedSpriteId }));
+        break;
+      default:
+        console.error(`Unknown action type: ${actionType}`);
     }
   };
 
@@ -30,12 +53,10 @@ const MidArea = () => {
   return (
     <div className="flex-1 h-full overflow-auto bg-gray-100 p-6" onDrop={handleDrop} onDragOver={handleDragOver}>
       <div className="bg-white rounded-lg shadow-md p-6">
-
         {selectedSprite ? (
           <>
             <div className='flex gap-4'>
-              <h2 className="text-2xl flex font-bold text-gray-800 mb-4">Actions for Selected Sprite
-              </h2>
+              <h2 className="text-2xl flex font-bold text-gray-800 mb-4">Actions for Selected Sprite</h2>
               <div className='text-sm'><SpriteImage spriteName={selectedSprite.name} styles={{ width: "50px", height: "50px" }} /></div>
             </div>
             <div className="mb-6">
@@ -46,15 +67,15 @@ const MidArea = () => {
                     <ActionInput index={index} action={action} />
                     <button onClick={(e) => {
                       e.preventDefault();
-                      dispatch(deleteAction({ index }))
-                    }}
-                    >
+                      dispatch(deleteAction({ index }));
+                    }}>
                       <Trash width={"18px"} color='red' />
                     </button>
                   </li>
                 ))}
               </ul>
-            </div></>
+            </div>
+          </>
         ) : (
           <p className="text-gray-600 italic mb-6">No sprite selected</p>
         )}
