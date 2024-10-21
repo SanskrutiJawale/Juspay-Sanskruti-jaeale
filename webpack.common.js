@@ -11,6 +11,7 @@ module.exports = {
   },
   module: {
     rules: [
+      
       {
         test: /\.css$/i,
         use: [

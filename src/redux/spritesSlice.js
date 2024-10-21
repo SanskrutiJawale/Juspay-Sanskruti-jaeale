@@ -49,7 +49,7 @@ import { act } from 'react';
                         const distanceY = Math.abs(y1 - y2);
         
                         // Check if sprites overlap considering their width and height
-                        return distanceX <= 50 && distanceY <= 50;
+                        return distanceX <= 60 && distanceY <= 60;
                     };
 
                     let collisionDetected = false;
@@ -350,10 +350,55 @@ import { act } from 'react';
                 const sprite = state.sprites.find((s) => s.id === state.selectedSpriteId);
                 const { index, field, value } = action.payload;
                 sprite.actions[index]['payload'][field] = value
+            },
+            repeatAction: (state, action) => {
+                const { spriteId, times, actionType, payload } = action.payload;
+            
+                // Log the entire payload to check what's being passed
+                console.log("Action payload:", action.payload);
+            
+                // Check if spriteId exists
+                if (!spriteId) {
+                    console.error("spriteId is missing in the action payload.");
+                    return;
+                }
+            
+                // Get the sprite by ID from the state
+                const sprite = state.sprites[spriteId];
+            
+                // Log available sprite IDs for debugging
+                console.log("Trying to find sprite with ID:", spriteId);
+                console.log("Available sprite IDs:", Object.keys(state.sprites));
+            
+                // Check if the sprite exists
+                if (!sprite) {
+                    console.error(`Sprite with ID ${spriteId} not found.`);
+                    return; // Exit if the sprite doesn't exist
+                }
+            
+                // Check if times is a valid number
+                if (!times || typeof times !== 'number' || times <= 0) {
+                    console.error("Invalid 'times' value. Must be a positive number.");
+                    return;
+                }
+            
+                // Initialize actions if it doesn't exist
+                sprite.actions = sprite.actions || []; // Ensure actions is an array
+            
+                // Repeat the action `times` and add each action to the sprite's actions array
+                const repeatedActions = Array(times).fill({ actionType, payload });
+            
+                // Add the repeated actions to the sprite's existing actions
+                sprite.actions = [...sprite.actions, ...repeatedActions];
+            
+                console.log(`Added ${times} actions of type ${actionType} to sprite ${spriteId}.`);
             }
+            
+            
+            ,
         },
     });
 
-    export const { addSprite, selectSprite, updateActionValue, toggleCollision, resetCollisionHandled, deleteAction, checkCollisionAndSwap, goTo, move, rotate, updateRepeatPayload, addActionToSprite, playAllSprites,resetSprites } = spritesSlice.actions;
+    export const { repeatAction,addSprite, selectSprite, updateActionValue, toggleCollision, resetCollisionHandled, deleteAction, checkCollisionAndSwap, goTo, move, rotate, updateRepeatPayload, addActionToSprite, playAllSprites,resetSprites } = spritesSlice.actions;
 
     export default spritesSlice.reducer;

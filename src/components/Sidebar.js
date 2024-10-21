@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from 'react-redux';
-import { move, rotate, goTo, addActionToSprite,resetSprites  } from '../redux/spritesSlice';
+import { move, rotate, goTo, addActionToSprite,resetSprites,repeatAction } from '../redux/spritesSlice';
 import sidebarBlocks from "../constants/sidebarBlocks";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -39,13 +39,21 @@ const Sidebar = () => {
 
     const handleRepeatAnimation = () => {
         if (selectedSpriteId) {
-            dispatch(addActionToSprite({ spriteId: selectedSpriteId, actionType: 'Repeat', actionText: 'Repeat Animation', payload: {} }));
+            const times = 5; // Number of times to repeat the action
+            const interval = 500; // Time between repeats in ms (500ms = 0.5 seconds)
+            
+            // Define which action to repeat and its payload
+            dispatch(repeatAction({
+                spriteId: selectedSpriteId,
+                times,
+                interval,
+                actionType: 'MoveSteps', 
+                payload: { steps: 10 }   
+            }));
         }
     };
 
     const handleReset = () => {
-        // Dispatch the resetSprites action to reset all sprites
-        console.log("inside");
         dispatch(resetSprites());
 
         // Reset local state
@@ -54,7 +62,6 @@ const Sidebar = () => {
         setX(15);
         setY(15);
     };
-
 
     return (
         <div className="w-60 flex-none h-full overflow-y-auto p-2 border-right border-gray-200">
@@ -157,6 +164,7 @@ const Sidebar = () => {
         </div>
     );
 };
+
 
 const SpriteArea = () => {
     const dispatch = useDispatch();

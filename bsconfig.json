@@ -14,5 +14,5 @@
     "module": "es6",
     "in-source": true
   },
-  "bs-dependencies": ["@rescript/react", "bs-webapi", "bs-fetch"]
+  "bs-dependencies": ["@rescript/react", "bs-webapi", "bs-fetch"] 
 }
