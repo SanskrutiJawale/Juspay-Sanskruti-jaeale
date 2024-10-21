@@ -1,6 +1,7 @@
+// components/Sidebar.js
 import React, { useState } from "react";
 import { useDispatch, useSelector } from 'react-redux';
-import { move, rotate, goTo, addActionToSprite,resetSprites,repeatAction } from '../redux/spritesSlice';
+import { move, rotate, goTo, resetSprites, repeatAction } from '../redux/spritesSlice';
 import sidebarBlocks from "../constants/sidebarBlocks";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -15,7 +16,6 @@ const Sidebar = () => {
 
     const handleDragStart = (e, actionType, payload, text) => {
         e.dataTransfer.setData('actionType', actionType);
-        e.dataTransfer.setData('text', text);
         e.dataTransfer.setData('payload', JSON.stringify(payload));
     };
 
@@ -40,7 +40,7 @@ const Sidebar = () => {
     const handleRepeatAnimation = () => {
         if (selectedSpriteId) {
             const times = 5; // Number of times to repeat the action
-            const interval = 500; // Time between repeats in ms (500ms = 0.5 seconds)
+            const interval = 500; // Time between repeats in ms
             
             // Define which action to repeat and its payload
             dispatch(repeatAction({
@@ -62,6 +62,7 @@ const Sidebar = () => {
         setX(15);
         setY(15);
     };
+    
 
     return (
         <div className="w-60 flex-none h-full overflow-y-auto p-2 border-right border-gray-200">
@@ -163,61 +164,9 @@ const Sidebar = () => {
             </button>
         </div>
     );
+    
 };
 
 
-const SpriteArea = () => {
-    const dispatch = useDispatch();
-    const [actions, setActions] = useState([]);
 
-    const handleDrop = (e) => {
-        e.preventDefault();
-        const actionType = e.dataTransfer.getData('actionType');
-        const payload = JSON.parse(e.dataTransfer.getData('payload'));
-
-        const selectedSpriteId = getSelectedSpriteId(); // Replace with your logic to get the selected sprite ID
-
-        if (selectedSpriteId) {
-            if (actionType === 'MoveSteps') {
-                dispatch(move({ steps: payload.steps, spriteId: selectedSpriteId }));
-            } else if (actionType === 'TurnDegrees') {
-                dispatch(rotate({ degree: payload.degree, spriteId: selectedSpriteId }));
-            } else if (actionType === 'GoTo') {
-                dispatch(goTo({ x: payload.x, y: payload.y, spriteId: selectedSpriteId }));
-            } else if (actionType === 'Repeat') {
-                dispatch(addActionToSprite({ spriteId: selectedSpriteId, actionType: 'Repeat', actionText: 'Repeat Animation', payload: {} }));
-            }
-
-            // Add the action to the actions array
-            setActions((prevActions) => [
-                ...prevActions,
-                { type: actionType, payload }
-            ]);
-        }
-    };
-
-    const handleDragOver = (e) => {
-        e.preventDefault(); // Necessary to allow drop
-    };
-
-    return (
-        <div className="">
-            <div className="drop-area flex-grow border border-dashed p-3 mb-3" onDrop={handleDrop} onDragOver={handleDragOver}>
-              
-               
-            </div>
-            {/* Add other content in the sprite area here if needed */}
-        </div>
-    );
-};
-
-const App = () => {
-    return (
-        <div className="d-flex">
-            <Sidebar />
-            <SpriteArea />
-        </div>
-    );
-};
-
-export default App;
+export default Sidebar;

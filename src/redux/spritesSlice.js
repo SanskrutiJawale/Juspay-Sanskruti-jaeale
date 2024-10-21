@@ -9,6 +9,7 @@ import { act } from 'react';
         showCollisionAnimation: false,
         collisionHandled: false,
     };
+    
 
 
 
@@ -36,55 +37,62 @@ import { act } from 'react';
                     sprite.actions.push({ type: actionType, text: actionText, payload });
                 }
             },
-                move: (state, action) => {
-                    
-                    console.log("inside");
-                    const { steps, spriteId } = action.payload;
-                    const checkCollision = (sprite1, sprite2) => {
-                        if (!sprite1.position || !sprite2.position) return false;
-                        const { x: x1, y: y1 } = sprite1.position;
-                        const { x: x2, y: y2 } = sprite2.position;
-        
-                        const distanceX = Math.abs(x1 - x2);
-                        const distanceY = Math.abs(y1 - y2);
-        
-                        // Check if sprites overlap considering their width and height
-                        return distanceX <= 60 && distanceY <= 60;
-                    };
-
-                    let collisionDetected = false;
-                
-                    // Check for collisions between all sprites
-                    for (let i = 0; i < state.sprites.length; i++) {
-                        for (let j = i + 1; j < state.sprites.length; j++) {
-                            if (checkCollision(state.sprites[i], state.sprites[j])) {
-                                collisionDetected = true; 
-                                break; 
-                            }
-                        }
-                        if (collisionDetected) break; // Exit outer loop if collision detected
-                    }
-                
-                    const sprite = state.sprites.find((s) => s.id === spriteId); // Find the sprite to move
-                
-                    if (!collisionDetected) {
-                        // If no collision, move all sprites
-                        state.sprites.forEach((s) => {
-                            if (s) {
-                                const direction = s.moveDirection || 1;
-                                s.position.x += Math.cos((s.rotation * Math.PI) / 180) * steps * direction;
-                                s.position.y -= Math.sin((s.rotation * Math.PI) / 180) * steps * direction;
-                            }
-                        });
-                    } else {
-                        // If collision detected, only move the specified sprite
-                        if (sprite) {
-                            const direction = sprite.moveDirection || 1; // Use the sprite's moveDirection (default to 1 if undefined)
-                            sprite.position.x += Math.cos((sprite.rotation * Math.PI) / 180) * steps * direction;
-                            sprite.position.y -= Math.sin((sprite.rotation * Math.PI) / 180) * steps * direction;
+            move: (state, action) => {
+                console.log("inside");
+                const { steps, spriteId } = action.payload;
+                const checkCollision = (sprite1, sprite2) => {
+                    if (!sprite1.position || !sprite2.position) return false;
+                    const { x: x1, y: y1 } = sprite1.position;
+                    const { x: x2, y: y2 } = sprite2.position;
+            
+                    const distanceX = Math.abs(x1 - x2);
+                    const distanceY = Math.abs(y1 - y2);
+            
+                    // Check if sprites overlap considering their width and height
+                    return distanceX <=200 && distanceY <= 200;
+                };
+            
+                let collisionDetected = false;
+            
+                // Check for collisions between all sprites
+                for (let i = 0; i < state.sprites.length; i++) {
+                    for (let j = i + 1; j < state.sprites.length; j++) {
+                        if (checkCollision(state.sprites[i], state.sprites[j])) {
+                            collisionDetected = true; 
+                            break; 
                         }
                     }
-                },
+                    if (collisionDetected) break; // Exit outer loop if collision detected
+                }
+            
+                const sprite = state.sprites.find((s) => s.id === spriteId); // Find the sprite to move
+            
+                if (!collisionDetected) {
+                    // If no collision, move all sprites
+                    state.sprites.forEach((s) => {
+                        if (s) {
+                            const direction = s.moveDirection || 1;
+                            s.position.x += Math.cos((s.rotation * Math.PI) / 180) * steps * direction;
+                            s.position.y -= Math.sin((s.rotation * Math.PI) / 180) * steps * direction;
+                        }
+                    });
+                } else {
+                    // If collision detected, move the specified sprite and the second sprite in the opposite direction
+                    if (sprite) {
+                        const direction = sprite.moveDirection || 1; // Use the sprite's moveDirection (default to 1 if undefined)
+                        sprite.position.x += Math.cos((sprite.rotation * Math.PI) / 180) * steps * direction;
+                        sprite.position.y -= Math.sin((sprite.rotation * Math.PI) / 180) * steps * direction;
+                    }
+            
+                    // Move the other sprite in the opposite direction
+                    const otherSprite = state.sprites.find((s) => s.id !== spriteId); // Find another sprite to move
+                    if (otherSprite) {
+                        const oppositeDirection = -1 * (otherSprite.moveDirection || 1); // Reverse the direction
+                        otherSprite.position.x += Math.cos((otherSprite.rotation * Math.PI) / 180) * steps * oppositeDirection;
+                        otherSprite.position.y -= Math.sin((otherSprite.rotation * Math.PI) / 180) * steps * oppositeDirection;
+                    }
+                }
+            },
             
             goTo: (state, action) => {
                 const { x, y, spriteId } = action.payload;
@@ -203,7 +211,7 @@ import { act } from 'react';
             checkCollisionAndSwap: (state, action) => {
                 const { spriteId1, spriteId2, originalAction } = action.payload;
                 console.log('Original Action:', originalAction);
-                
+            
                 const sprite1 = state.sprites.find((s) => s.id === spriteId1);
                 const sprite2 = state.sprites.find((s) => s.id === spriteId2);
             
@@ -213,79 +221,27 @@ import { act } from 'react';
                 }
             
                 const checkCollision = (sprite1, sprite2) => {
-                    if (!sprite1.position || !sprite2.position) return false;
-                    const { x: x1, y: y1 } = sprite1.position;
-                    const { x: x2, y: y2 } = sprite2.position;
-            
-                    const distanceX = Math.abs(x1 - x2);
-                    const distanceY = Math.abs(y1 - y2);
-            
-                    // Check if sprites overlap considering their width and height
-                    return distanceX <= 50 && distanceY <= 50;
+                    // Collision checking logic
                 };
             
                 if (checkCollision(sprite1, sprite2) && state.showCollisionAnimation) {
                     console.log(`Collision detected between ${spriteId1} and ${spriteId2}`);
             
-                    // Swap sprite actions
-                    const tempActions = [...sprite1.actions];
-                    sprite1.actions = [...sprite2.actions];
-                    sprite2.actions = tempActions;
+                    // Swap sprite actions immutably
+                    const newActions1 = [...sprite2.actions];
+                    const newActions2 = [...sprite1.actions];
             
-                    // Log the number of actions after swapping
-                    console.log('After swapping actions:');
-                    console.log(`Sprite ${spriteId1} actions:`, sprite1.actions.length);
-                    console.log(`Sprite ${spriteId2} actions:`, sprite2.actions.length);
-            
-                    // Swap 'signto' property if present
-                    if (sprite1.signto && sprite2.signto) {
-                        [sprite1.signto, sprite2.signto] = [sprite2.signto, sprite1.signto];
-                    }
-            
-                    // Swap any other properties if needed
-                    if (sprite1.propertyToTransfer && sprite2.propertyToTransfer) {
-                        [sprite1.propertyToTransfer, sprite2.propertyToTransfer] =
-                            [sprite2.propertyToTransfer, sprite1.propertyToTransfer];
-                    }
-            
-                    // Adjust sprite positions after collision
-                    const moveDistance = 10;
-                    sprite1.position.x += moveDistance * (sprite1.moveDirection || 1);
-                    sprite2.position.x -= moveDistance * (sprite2.moveDirection || -1);
-            
-                    // Set move directions
-                    sprite1.moveDirection = 1;  // Sprite A moves forward
-                    sprite2.moveDirection = -1; // Sprite B moves backward
-            
-                    console.log("Outside after collision handling");
-                     const performMoveAction = (sprite, steps) => {
-                            if (sprite.actions.length >= 0) { // Check if there are actions to perform
-                                const moveAction = {
-                                    type: 'move',
-                                    payload: { steps },
-                                };
-                                console.log(`Performing action for sprite ${sprite.id}:`, moveAction);
-                                // Assuming you have a performAction reducer defined in your slice
-                                spritesSlice.caseReducers.performAction(state, { payload: { spriteId: sprite.id, action: moveAction } });
-                            }
-                        };
-            
-                        performMoveAction(sprite1, 10);
-                        performMoveAction(sprite2, -10);
-            
-                    // Limit the movement action to prevent infinite triggering
-                    if (!sprite1.isMoving && !sprite2.isMoving) {
-                        sprite1.isMoving = true; // Flag to indicate movement is in progress
-                        sprite2.isMoving = true;
-            
-                       
-            
-                        // Reset the moving flags after the movement actions have been performed
-                        sprite1.isMoving = false;
-                        sprite2.isMoving = false;
-                    }
+                    return {
+                        ...state,
+                        sprites: state.sprites.map(sprite => 
+                            sprite.id === spriteId1 ? { ...sprite, actions: newActions1 } :
+                            sprite.id === spriteId2 ? { ...sprite, actions: newActions2 } :
+                            sprite
+                        ),
+                    };
                 }
             },
+            
             
             performAction: (state, action) => {
                 const { spriteId, action: spriteAction } = action.payload;
